@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Track-Mania</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/addons/p5.sound.min.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+    <link rel="stylesheet" href="styles/normalize.css">
+    <link rel="stylesheet" href="styles/games.css">
+
+</head>
+<body>
+    <a href="index.html" class="home-link">Home</a>
+    
+    <div class="container">
+
+        <div class="instructions">
+            <h1>How to Play</h1>
+            <p>Use your right hand to control the character's position on the screen.</p>
+            Avoid getting hit by the passing cars by moving up or down.
+            You have 5 lives. The game ends when all lives are lost.
+            Survive for as long as you can!
+            (It helps to take some distance from the camera ;) </p>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h1>Game Over</h1>
+            <button class="restart-button" onclick="restartGame()">Restart</button>
+        </div>
+    </div>
+
+    <script>
+
+        class Car {
+            constructor() {
+                this.x = width; // Startpositie aan de rechterkant van het canvas
+                this.y = random(height); // Willekeurige hoogte voor de auto
+                this.speed = random(2, 5); // Snelheid van de auto (willekeurig gekozen)
+                this.width = 60; // Breedte van de auto
+                this.height = 40; // Hoogte van de auto
+                this.acceleration = 0.02; // Versnelling van de auto
+            }
+
+           // Methode om de auto te laten bewegen
+           move() {
+                if (lives > 0) {
+                    this.x -= this.speed; // Auto beweegt naar links
+                    this.speed += this.acceleration; // Verhoog de snelheid met de versnelling
+                    if (this.x < -this.width) {
+                        // Als de auto buiten het canvas gaat, opnieuw positioneren aan de rechterkant
+                        this.x = width;
+                        this.y = random(height); // Nieuwe willekeurige hoogte voor de auto
+                        this.speed = random(5, 7); // Willekeurige snelheid voor variatie
+                    }
+                    // Als de auto aan het einde van het canvas komt, reset de y-waarde
+                    if (this.x > width) {
+                        this.y = random(height);
+                    }
+                }
+            }
+
+            // Methode om de auto te tekenen
+            draw() {
+                fill(255, 0, 0); // Kleur van de auto
+                
+                // Draw car body
+                rect(this.x, this.y + this.height * 0.3, this.width, this.height * 0.4); // Body of the car
+                
+                // Draw windows
+                fill(200); // Grey color for windows
+                rect(this.x + this.width * 0.6, this.y + this.height * 0.35, this.width * 0.3, this.height * 0.25); // Window
+                rect(this.x + this.width * 0.1, this.y + this.height * 0.35, this.width * 0.4, this.height * 0.25); // Side window
+                
+                // Draw wheels
+                fill(50); // Dark color for wheels
+                ellipse(this.x + this.width * 0.15, this.y + this.height * 0.8, this.width * 0.3, this.width * 0.3); // Front wheel
+                ellipse(this.x + this.width * 0.85, this.y + this.height * 0.8, this.width * 0.3, this.width * 0.3); // Rear wheel
+            }
+
+            // Methode om te controleren of de speler de auto raakt
+            hits(player) {
+                // Controleer of de speler binnen de grenzen van de auto komt
+                if (playerX > this.x && playerX < this.x + this.width && playerY + 30 > this.y && playerY - 30 < this.y + this.height) {
+                    return true; // Speler raakt de auto
+                }
+                return false; // Speler raakt de auto niet
+            }
+        }
+
+        let car; // Variabele voor de auto
+        let video;
+        let poseNet;
+        let poses = [];
+        let playerY;
+        let playerX;
+        let lives = 5; // Aantal levens van de speler
+        let isPlayerHitByCar1 = false; // Variable to track if the player is hit by car 1
+        let isPlayerHitByCar2 = false; // Variable to track if the player is hit by car 2
+        let timeSurvived = 0; // Variable to store the time survived in seconds
+
+
+        function setup() {
+            createCanvas(640, 480);
+            video = createCapture(VIDEO);
+            video.size(width, height);
+
+            poseNet = ml5.poseNet(video, modelReady);
+            poseNet.on('pose', function(results) {
+                poses = results;
+            });
+
+            video.hide();
+            playerY = height / 2;
+            playerX = width / 2;
+
+            // Initialiseer de auto
+            car = new Car();
+            car2 = new Car();
+        }
+
+        function modelReady() {
+            console.log("Model Loaded!");
+        }
+
+        function draw() {
+
+            // Increment the time survived
+            if (lives > 0) {
+                timeSurvived += 1/60; // Increment the time survived
+            }
+
+            image(video, 0, 0, width, height);
+
+            // Tekenen van de poses
+            drawKeypoints();
+            drawSkeleton();
+
+            // Beweeg de speler
+            movePlayer();
+            drawPlayer();
+
+            // Beweeg en teken de auto
+            car.move();
+            car.draw();
+
+            car2.move();
+            car2.draw();
+
+            // Controleren of de speler de auto raakt
+            if ((car.hits() && !isPlayerHitByCar1) || (car2.hits() && !isPlayerHitByCar2)) {
+                // Verminder het aantal levens
+                lives--;
+
+                // Zet de juiste variabele op true om aan te geven dat de speler geraakt is
+                if (car.hits()) {
+                    isPlayerHitByCar1 = true;
+                }
+                if (car2.hits()) {
+                    isPlayerHitByCar2 = true;
+                }
+
+                // Controleer of het spel voorbij is
+                if (lives === 0) {
+                    // Doe hier iets als het spel voorbij is (bijv. spel stoppen, score weergeven, etc.)
+                    // Toon het game-over-scherm
+                    document.getElementById('gameOver').style.display = 'flex';
+                }
+            }
+
+            // Als de speler niet meer in aanraking is met een auto, zet de juiste variabele terug op false
+            if (!car.hits()) {
+                isPlayerHitByCar1 = false;
+            }
+            if (!car2.hits()) {
+                isPlayerHitByCar2 = false;
+            }
+
+            // Tekenen van het aantal levens
+            drawLives();
+            
+            // Draw the time survived
+            drawTimeSurvived();
+        }
+
+        function drawLives() {
+            textSize(20);
+            fill(255);
+            text("Lives: " + lives, 10, 30);
+        }
+
+        function drawTimeSurvived() {
+            textSize(20);
+            fill(255);
+            text("Time Survived: " + round(timeSurvived) + " seconds", 10, 60); // Display the time survived
+        }
+
+       // Variabele om de laatst bekende polspositie bij te houden
+        let lastKnownPlayerY;
+
+        function movePlayer() {
+            if (poses.length > 0) {
+                let pose = poses[0].pose;
+                let rightWrist = pose.rightWrist;
+
+                if (rightWrist.confidence > 0.2) {
+                    playerY = map(rightWrist.y, 0, height, 0, height);
+                    // Bijwerken van de laatst bekende polspositie
+                    lastKnownPlayerY = playerY;
+                } else {
+                    // Gebruik de laatst bekende polspositie als de huidige positie ontbreekt
+                    if (lastKnownPlayerY !== undefined) {
+                        playerY = lastKnownPlayerY;
+                    }
+                }
+            }
+        }
+
+        function drawPlayer() {
+            // Tekenen van een eenvoudig personage
+            noStroke();
+
+            // Hoofd
+            fill(255, 224, 189); // Huidkleur
+            ellipse(playerX, playerY - 30, 30, 30); // Hoofd
+
+            // Lichaam
+            fill(0, 255, 0); // Groene kleur voor lichaam
+            rect(playerX - 15, playerY - 15, 30, 40); // Lichaam
+
+            // Armen
+            fill(255, 224, 189); // Huidkleur
+            rect(playerX - 30, playerY - 15, 15, 30); // Linkerarm
+            rect(playerX + 15, playerY - 15, 15, 30); // Rechterarm
+
+            // Benen
+            fill(0, 0, 255); // Blauwe kleur voor benen
+            rect(playerX - 15, playerY + 25, 15, 30); // Linkerbeen
+            rect(playerX, playerY + 25, 15, 30); // Rechterbeen
+        }
+
+        function drawKeypoints() {
+            for (let i = 0; i < poses.length; i++) {
+                let pose = poses[i].pose;
+                let rightWrist = pose.rightWrist;
+                
+                if (rightWrist.confidence > 0.2) {
+                    fill(255, 0, 0);
+                    noStroke();
+                    ellipse(rightWrist.x, rightWrist.y, 10, 10);
+                }
+            }
+        }
+
+        function drawSkeleton() {
+            for (let i = 0; i < poses.length; i++) {
+                let skeleton = poses[i].skeleton;
+                for (let j = 0; j < skeleton.length; j++) {
+                    let partA = skeleton[j][0];
+                    let partB = skeleton[j][1];
+                    stroke(255, 0, 0);
+                    line(partA.position.x, partA.position.y, partB.position.x, partB.position.y);
+                }
+            }
+        }
+
+        function restartGame() {
+            // Reset variables
+            lives = 5;
+            timeSurvived = 0;
+            document.getElementById('gameOver').style.display = 'none'; // Hide game over screen
+            
+            // Reset car positions and speeds
+            car.x = width;
+            car.y = random(height);
+            car.speed = random(2, 5);
+
+            car2.x = width;
+            car2.y = random(height);
+            car2.speed = random(2, 5);
+        }
+    </script>
+</body>
+</html>

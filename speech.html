@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz van Wizz</title>
+    <link rel="stylesheet" href="styles/normalize.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        a {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #333;
+            text-decoration: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .phrase {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .result {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .output {
+            font-size: 16px;
+            color: #777;
+        }
+
+        .home-link {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+            z-index: 3; /* Ensure home link is on top */
+        }
+                
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-link">Home</a>
+    <h1>Small Quiz</h1>
+
+    <div class="container">
+        <button id="startButton">Start Quiz</button>
+
+        <div id="quizContent">
+            <p class="phrase">Press the button to get the question</p>
+            <p class="result">Place your bets?</p>
+            <p class="output">...diagnostic messages</p>
+        </div>
+    </div>
+
+    <script src="speech.js"></script>
+</body>
+</html>

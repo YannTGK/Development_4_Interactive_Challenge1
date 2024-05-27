@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I see what you see</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+    <link rel="stylesheet" href="styles/normalize.css">
+    <link rel="stylesheet" href="styles/games.css">
+    <style>
+        canvas {
+            border: none;
+        }
+
+        video {
+            border: 2px solid black;
+            border-radius: 10px;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-link">Home</a>
+
+    <div class="container">
+        <div class="instructions">
+            <h1>Object Detection Game</h1>
+            <p>Welcome to the Object Detection Game! Your goal is to capture images from the camera and detect objects in them using machine learning. Click the "Capture Image" button to take a snapshot, and the model will identify any objects it detects in the image. Have fun exploring and discovering various objects!</p>
+            <button id="capture" class="restart-button">Capture Image</button>
+            <div id="result"></div>
+        </div>
+    </div>
+    
+    <div id="camera-container"></div>
+    
+    <script>
+        let video = document.querySelector('video');
+        let detector;
+        let captureButton;
+        let resultDiv;
+
+        function setup() {
+            if (!video) {
+                // Create video element if it doesn't exist
+                video = document.createElement('video');
+                video.setAttribute('autoplay', true);
+                video.setAttribute('width', '640');
+                video.setAttribute('height', '480');
+                document.getElementById('camera-container').appendChild(video);
+            }
+
+            // Access the camera only when the page loads
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    video.srcObject = stream;
+
+                    // Load the COCO-SSD object detection model
+                    detector = ml5.objectDetector('cocossd', modelReady);
+                })
+                .catch(function(error) {
+                    console.error('Error accessing the camera:', error);
+                });
+
+            // Get the capture button and result div
+            captureButton = document.getElementById('capture');
+            resultDiv = document.getElementById('result');
+
+            // Set up the capture button event
+            captureButton.addEventListener('click', captureImage);
+        }
+
+        function modelReady() {
+            console.log('Model Loaded!');
+        }
+
+        function captureImage() {
+            console.log('Capture button pressed');
+            // Detect objects in the current frame from the camera
+            detector.detect(video, gotResult);
+        }
+
+        function gotResult(error, results) {
+            if (error) {
+                console.error(error);
+                resultDiv.innerHTML = 'Error: ' + error;
+            } else {
+                console.log('Detection results:', results);
+                if (results.length > 0) {
+                    let detectedObjects = results.map(result => result.label);
+                    resultDiv.innerHTML = 'Detected Objects: ' + detectedObjects.join(', ');
+                } else {
+                    resultDiv.innerHTML = 'No objects detected.';
+                }
+            }
+        }
+
+        // Ensure the setup function runs when the page loads
+        window.addEventListener('load', setup);
+
+    </script>
+</body>
+</html>

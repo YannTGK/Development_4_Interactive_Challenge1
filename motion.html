@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space X</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.1/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.1/addons/p5.sound.min.js"></script>
+    <link rel="stylesheet" href="styles/games.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .holder {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
+            
+        }
+
+        .holder>* {
+            margin: 0px 24px;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .home-link {
+            position:relative;
+        }
+        
+    </style>
+
+</head>
+<body>
+    <div class="holder">
+        <a href="index.html" class="home-link">Home</a>
+        <button id="motion" type="button">Enable Motion Detection</button>
+    </div>
+
+
+
+    <script>
+        
+        let backgroundStars = [];
+        let collectibleStars = [];
+        let asteroids = [];
+        let score = 0;
+        let lives = 5; // Initialize with 5 lives
+        let deltaX, deltaY;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const beginX = w / 2;
+        const beginY = h / 2;
+
+        function setup() {
+            createCanvas(w-50, h-75);
+            generateBackgroundStars(100); // Generate 100 background stars
+            generateAsteroids(3); // Generate 3 asteroids
+
+            // Generate 10 collectible stars
+            for (let i = 0; i < 10; i++) {
+                generateCollectibleStar();
+            }
+        }
+
+        function draw() {
+            background(0); // Set background color to black for space
+            drawBackgroundStars();
+            drawCollectibleStars();
+            drawAsteroids();
+
+            // Display Score and Lives
+            fill(255);
+            textSize(24);
+            textAlign(LEFT);
+            text(`Score: ${score}`, 20, 40);
+            text(`Lives: ${lives}`, 20, 70);
+
+            ball.show();
+            angleMode(DEGREES);
+            deltaX = map(rotationX, -30, 30, -10, 10);
+            deltaY = map(rotationY, -30, 30, -10, 10);
+            ball.move(deltaX, deltaY);
+            fill(255); // Set color to white for the ball
+            textAlign(CENTER);
+
+            // Check for collision with asteroids
+            for (let i = 0; i < asteroids.length; i++) {
+                if (!asteroids[i].hit && dist(ball.x, ball.y, asteroids[i].x, asteroids[i].y) < ball.size / 2 + asteroids[i].size / 2) {
+                    lives--; // Decrease lives if collision occurs
+                    asteroids[i].hit = true; // Set the hit flag to true
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                    break; // Exit loop after collision with one asteroid
+                }
+            }
+        }
+
+        function gameOver() {
+            noLoop(); // Stop the draw loop
+            textSize(48);
+            textAlign(CENTER, CENTER);
+            fill(255);
+            text("Game Over", width / 2, height / 2);
+        }
+
+        function generateBackgroundStars(numStars) {
+            for (let i = 0; i < numStars; i++) {
+                backgroundStars.push(createVector(random(width), random(height)));
+            }
+        }
+
+        function drawBackgroundStars() {
+            fill(255); // Set color to white for background stars
+            noStroke();
+            for (let i = 0; i < backgroundStars.length; i++) {
+                ellipse(backgroundStars[i].x, backgroundStars[i].y, 2, 2); // Draw a small ellipse for each background star
+            }
+        }
+
+        function generateAsteroids(numAsteroids) {
+            for (let i = 0; i < numAsteroids; i++) {
+                let x = random(width);
+                let y = random(height);
+                let speed = random(1, 3);
+                asteroids.push(new Asteroid(x, y, speed));
+            }
+        }
+
+        function drawAsteroids() {
+            for (let i = 0; i < asteroids.length; i++) {
+                asteroids[i].update();
+                asteroids[i].display();
+            }
+        }
+
+        class Asteroid {
+            constructor(x, y, speed) {
+                this.x = x;
+                this.y = y;
+                this.speed = speed;
+                this.size = random(20, 50); // Randomize asteroid size
+                this.hit = false; // Flag to track if the asteroid has been hit
+            }
+
+            update() {
+                this.x -= this.speed; // Move the asteroid from right to left
+                if (this.x < -this.size) {
+                    this.x = width; // Reset the asteroid's position when it goes off-screen
+                    this.y = random(height);
+                    this.hit = false; // Reset the hit flag when repositioning
+                }
+            }
+
+            display() {
+                fill(150); // Set color to gray for asteroids
+                ellipse(this.x, this.y, this.size, this.size); // Draw an ellipse for the asteroid
+            }
+        }
+
+        class Ball {
+            constructor(x, y, s, c) {
+                this.x = x;
+                this.y = y;
+                this.size = s;
+                this.color = c;
+            }
+
+            show() {
+                push();
+                noStroke();
+                fill(this.color);
+                rect(this.x - this.size / 2, this.y - this.size / 4, this.size, this.size / 2, 5); // Body
+                fill(50); // Dark gray for cockpit
+                rect(this.x - this.size / 8, this.y - this.size / 4 - this.size / 8, this.size / 4, this.size / 4, 3); // Cockpit
+                fill(150); // Light gray for wings
+                triangle(this.x - this.size / 2, this.y, this.x - this.size / 4, this.y - this.size / 8, this.x - this.size / 4, this.y + this.size / 8); // Left wing
+                triangle(this.x + this.size / 2, this.y, this.x + this.size / 4, this.y - this.size / 8, this.x + this.size / 4, this.y + this.size / 8); // Right wing
+                pop();
+            }
+
+            move(xOff, yOff) {
+                this.x += xOff;
+                this.y += yOff;
+                let r = this.size / 2;
+                if (this.x - r < 0) {
+                    this.x = 0 + r;
+                }
+                if (this.x + r > width) {
+                    this.x = width - r;
+                }
+                if (this.y - r < 0) {
+                    this.y = 0 + r;
+                }
+                if (this.y + r > height) {
+                    this.y = height - r;
+                }
+
+                // Check for collision with collectible stars
+                for (let i = 0; i < collectibleStars.length; i++) {
+                    if (dist(this.x, this.y, collectibleStars[i].x, collectibleStars[i].y) < r) {
+                        collectibleStars.splice(i, 1); // Remove the collectible star
+                        score++; // Increase the score
+                        generateCollectibleStar(); // Generate a new collectible star
+                        break; // Exit loop after collision with one collectible star
+                    }
+                }
+            }
+        }
+
+        class CollectibleStar {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = 30;
+            }
+
+            display() {
+               fill(255, 255, 0); // Set color to yellow for collectible stars
+
+                noStroke();
+                ellipse(this.x, this.y, this.size, this.size); // Draw a bigger ellipse for each collectible star
+            }
+        }
+
+        const ball = new Ball(beginX, beginY, 70, "#ff8e0d");
+
+        function generateCollectibleStar() {
+            let x = random(width);
+            let y = random(height);
+            collectibleStars.push(new CollectibleStar(x, y));
+        }
+
+        function drawCollectibleStars() {
+            for (let i = 0; i < collectibleStars.length; i++) {
+                collectibleStars[i].display(); // Display each collectible star
+            }
+        }
+
+        function requestMotionPermission() {
+            var initialOffset = null;
+            let isMobile = isMobileTablet();
+            let iOS = is_iOS();
+            if (iOS) {
+                // alert("This is an iOS device, requested permission");
+                try {
+                    DeviceMotionEvent.requestPermission()
+                        .then(response => {
+                            if (response == 'granted') {
+                                window.addEventListener('devicemotion', evt => {
+                                    if (initialOffset === null && evt.absolute !== true && +evt.webkitCompassAccuracy > 0 && +evt.webkitCompassAccuracy < 50) {
+                                        initialOffset = evt.webkitCompassHeading || 0;
+                                    } else if (initialOffset === null) {
+                                        initialOffset = evt.alpha;
+                                    }
+                                    var alpha = evt.alpha - initialOffset;
+                                    if (alpha < 0) {
+                                        alpha += 360;
+                                    }
+
+                                
+                                
+
+                                });
+                            }
+                        })
+                        .catch(console.error);
+                } catch (error) {
+                    alert(error);
+
+                }
+            } else if (isMobile) {
+                alert("This is an Android device, no permission needed");
+                window.addEventListener('devicemotion', evt => {
+                    if (initialOffset === null && evt.absolute !== true && +evt.webkitCompassAccuracy > 0 && +evt.webkitCompassAccuracy < 50) {
+                        initialOffset = evt.webkitCompassHeading || 0;
+                    } else if (initialOffset === null) {
+                        initialOffset = evt.alpha;
+                    }
+                    var alpha = evt.alpha - initialOffset;
+                    if (alpha < 0) {
+                        alpha += 360;
+                    }
+
+                    // these are global variables
+                    deltaRotation.x = map(rotationY, -30, 30, -5, 5);
+                    deltaRotation.y = map(rotationX, -30, 30, -5, 5);
+
+                });
+            } else {
+                alert("Only needed on mobile devices")
+            }
+
+        }
+
+        function isMobileTablet() {
+            var check = false;
+            (function(a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4)))
+                    check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        }
+
+        // from https://stackoverflow.com/questions/9038625/detect-if-device-is-ios
+        /**
+         * Is the device iOS?
+         */
+        function is_iOS() {
+            return ['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform)
+                // iPad on iOS 13 detection
+                ||
+                (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+        }
+        document.getElementById('motion').onclick = requestMotionPermission;
+    </script>
+</body>
+</html>

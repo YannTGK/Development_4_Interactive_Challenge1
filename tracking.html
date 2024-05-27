@@ -35,70 +35,63 @@
 
         class Car {
             constructor() {
-                this.x = width; // Startpositie aan de rechterkant van het canvas
-                this.y = random(height); // Willekeurige hoogte voor de auto
-                this.speed = random(2, 5); // Snelheid van de auto (willekeurig gekozen)
-                this.width = 60; // Breedte van de auto
-                this.height = 40; // Hoogte van de auto
-                this.acceleration = 0.02; // Versnelling van de auto
+                this.x = width; 
+                this.y = random(height); 
+                this.speed = random(2, 5);
+                this.width = 60; 
+                this.height = 40; 
+                this.acceleration = 0.02; 
             }
 
-           // Methode om de auto te laten bewegen
+          
            move() {
                 if (lives > 0) {
-                    this.x -= this.speed; // Auto beweegt naar links
-                    this.speed += this.acceleration; // Verhoog de snelheid met de versnelling
+                    this.x -= this.speed; 
+                    this.speed += this.acceleration; 
                     if (this.x < -this.width) {
-                        // Als de auto buiten het canvas gaat, opnieuw positioneren aan de rechterkant
                         this.x = width;
-                        this.y = random(height); // Nieuwe willekeurige hoogte voor de auto
-                        this.speed = random(5, 7); // Willekeurige snelheid voor variatie
+                        this.y = random(height); 
+                        this.speed = random(5, 7); 
                     }
-                    // Als de auto aan het einde van het canvas komt, reset de y-waarde
                     if (this.x > width) {
                         this.y = random(height);
                     }
                 }
             }
 
-            // Methode om de auto te tekenen
+            
             draw() {
-                fill(255, 0, 0); // Kleur van de auto
+                fill(255, 0, 0);
                 
-                // Draw car body
                 rect(this.x, this.y + this.height * 0.3, this.width, this.height * 0.4); // Body of the car
                 
-                // Draw windows
-                fill(200); // Grey color for windows
+                fill(200); 
                 rect(this.x + this.width * 0.6, this.y + this.height * 0.35, this.width * 0.3, this.height * 0.25); // Window
                 rect(this.x + this.width * 0.1, this.y + this.height * 0.35, this.width * 0.4, this.height * 0.25); // Side window
                 
-                // Draw wheels
-                fill(50); // Dark color for wheels
+                fill(50); 
                 ellipse(this.x + this.width * 0.15, this.y + this.height * 0.8, this.width * 0.3, this.width * 0.3); // Front wheel
                 ellipse(this.x + this.width * 0.85, this.y + this.height * 0.8, this.width * 0.3, this.width * 0.3); // Rear wheel
             }
 
-            // Methode om te controleren of de speler de auto raakt
             hits(player) {
-                // Controleer of de speler binnen de grenzen van de auto komt
                 if (playerX > this.x && playerX < this.x + this.width && playerY + 30 > this.y && playerY - 30 < this.y + this.height) {
-                    return true; // Speler raakt de auto
+                    return true; 
                 }
-                return false; // Speler raakt de auto niet
+                return false; 
             }
         }
 
-        let car; // Variabele voor de auto
+        let car; 
         let video;
         let poseNet;
         let poses = [];
         let playerY;
         let playerX;
-        let lives = 5; // Aantal levens van de speler
-        let isPlayerHitByCar1 = false; // Variable to track if the player is hit by car 1
-        let isPlayerHitByCar2 = false; // Variable to track if the player is hit by car 2
-        let timeSurvived = 0; // Variable to store the time survived in seconds
+        let lives = 5; 
+        let isPlayerHitByCar1 = false; 
+        let isPlayerHitByCar2 = false;
+        let timeSurvived = 0;
 
 
         function setup() {
@@ -115,7 +108,6 @@
             playerY = height / 2;
             playerX = width / 2;
 
-            // Initialiseer de auto
             car = new Car();
             car2 = new Car();
         }
@@ -126,34 +118,27 @@
 
         function draw() {
 
-            // Increment the time survived
             if (lives > 0) {
-                timeSurvived += 1/60; // Increment the time survived
+                timeSurvived += 1/60; 
             }
 
             image(video, 0, 0, width, height);
 
-            // Tekenen van de poses
             drawKeypoints();
             drawSkeleton();
 
-            // Beweeg de speler
             movePlayer();
             drawPlayer();
 
-            // Beweeg en teken de auto
             car.move();
             car.draw();
 
             car2.move();
             car2.draw();
 
-            // Controleren of de speler de auto raakt
             if ((car.hits() && !isPlayerHitByCar1) || (car2.hits() && !isPlayerHitByCar2)) {
-                // Verminder het aantal levens
                 lives--;
 
-                // Zet de juiste variabele op true om aan te geven dat de speler geraakt is
                 if (car.hits()) {
                     isPlayerHitByCar1 = true;
                 }
@@ -161,15 +146,11 @@
                     isPlayerHitByCar2 = true;
                 }
 
-                // Controleer of het spel voorbij is
                 if (lives === 0) {
-                    // Doe hier iets als het spel voorbij is (bijv. spel stoppen, score weergeven, etc.)
-                    // Toon het game-over-scherm
                     document.getElementById('gameOver').style.display = 'flex';
                 }
             }
 
-            // Als de speler niet meer in aanraking is met een auto, zet de juiste variabele terug op false
             if (!car.hits()) {
                 isPlayerHitByCar1 = false;
             }
@@ -177,10 +158,8 @@
                 isPlayerHitByCar2 = false;
             }
 
-            // Tekenen van het aantal levens
             drawLives();
-            
-            // Draw the time survived
+
             drawTimeSurvived();
         }
 
@@ -193,10 +172,9 @@
         function drawTimeSurvived() {
             textSize(20);
             fill(255);
-            text("Time Survived: " + round(timeSurvived) + " seconds", 10, 60); // Display the time survived
+            text("Time Survived: " + round(timeSurvived) + " seconds", 10, 60); 
         }
 
-       // Variabele om de laatst bekende polspositie bij te houden
         let lastKnownPlayerY;
 
         function movePlayer() {
@@ -206,10 +184,8 @@
 
                 if (rightWrist.confidence > 0.2) {
                     playerY = map(rightWrist.y, 0, height, 0, height);
-                    // Bijwerken van de laatst bekende polspositie
                     lastKnownPlayerY = playerY;
                 } else {
-                    // Gebruik de laatst bekende polspositie als de huidige positie ontbreekt
                     if (lastKnownPlayerY !== undefined) {
                         playerY = lastKnownPlayerY;
                     }
@@ -218,26 +194,21 @@
         }
 
         function drawPlayer() {
-            // Tekenen van een eenvoudig personage
             noStroke();
 
-            // Hoofd
-            fill(255, 224, 189); // Huidkleur
-            ellipse(playerX, playerY - 30, 30, 30); // Hoofd
+            fill(255, 224, 189); 
+            ellipse(playerX, playerY - 30, 30, 30); 
 
-            // Lichaam
-            fill(0, 255, 0); // Groene kleur voor lichaam
-            rect(playerX - 15, playerY - 15, 30, 40); // Lichaam
+            fill(0, 255, 0);
+            rect(playerX - 15, playerY - 15, 30, 40); 
 
-            // Armen
-            fill(255, 224, 189); // Huidkleur
-            rect(playerX - 30, playerY - 15, 15, 30); // Linkerarm
-            rect(playerX + 15, playerY - 15, 15, 30); // Rechterarm
+            fill(255, 224, 189); 
+            rect(playerX - 30, playerY - 15, 15, 30); 
+            rect(playerX + 15, playerY - 15, 15, 30); 
 
-            // Benen
-            fill(0, 0, 255); // Blauwe kleur voor benen
-            rect(playerX - 15, playerY + 25, 15, 30); // Linkerbeen
-            rect(playerX, playerY + 25, 15, 30); // Rechterbeen
+            fill(0, 0, 255); 
+            rect(playerX - 15, playerY + 25, 15, 30); 
+            rect(playerX, playerY + 25, 15, 30); 
         }
 
         function drawKeypoints() {
@@ -266,12 +237,10 @@
         }
 
         function restartGame() {
-            // Reset variables
             lives = 5;
             timeSurvived = 0;
-            document.getElementById('gameOver').style.display = 'none'; // Hide game over screen
+            document.getElementById('gameOver').style.display = 'none'; 
             
-            // Reset car positions and speeds
             car.x = width;
             car.y = random(height);
             car.speed = random(2, 5);

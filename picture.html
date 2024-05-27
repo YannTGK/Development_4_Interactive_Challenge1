@@ -51,23 +51,20 @@
                 document.getElementById('camera-container').appendChild(video);
             }
 
-            // Access the camera only when the page loads
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function(stream) {
                     video.srcObject = stream;
-
-                    // Load the COCO-SSD object detection model
                     detector = ml5.objectDetector('cocossd', modelReady);
                 })
                 .catch(function(error) {
                     console.error('Error accessing the camera:', error);
                 });
 
-            // Get the capture button and result div
+          
             captureButton = document.getElementById('capture');
             resultDiv = document.getElementById('result');
 
-            // Set up the capture button event
+      
             captureButton.addEventListener('click', captureImage);
         }
 

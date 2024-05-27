@@ -57,7 +57,7 @@
         let collectibleStars = [];
         let asteroids = [];
         let score = 0;
-        let lives = 5; // Initialize with 5 lives
+        let lives = 5; 
         let deltaX, deltaY;
         const w = window.innerWidth;
         const h = window.innerHeight;
@@ -66,8 +66,8 @@
 
         function setup() {
             createCanvas(w-50, h-75);
-            generateBackgroundStars(100); // Generate 100 background stars
-            generateAsteroids(3); // Generate 3 asteroids
+            generateBackgroundStars(100);
+            generateAsteroids(3); 
 
             // Generate 10 collectible stars
             for (let i = 0; i < 10; i++) {
@@ -76,7 +76,7 @@
         }
 
         function draw() {
-            background(0); // Set background color to black for space
+            background(0); 
             drawBackgroundStars();
             drawCollectibleStars();
             drawAsteroids();
@@ -93,14 +93,14 @@
             deltaX = map(rotationX, -30, 30, -10, 10);
             deltaY = map(rotationY, -30, 30, -10, 10);
             ball.move(deltaX, deltaY);
-            fill(255); // Set color to white for the ball
+            fill(255);
             textAlign(CENTER);
 
             // Check for collision with asteroids
             for (let i = 0; i < asteroids.length; i++) {
                 if (!asteroids[i].hit && dist(ball.x, ball.y, asteroids[i].x, asteroids[i].y) < ball.size / 2 + asteroids[i].size / 2) {
-                    lives--; // Decrease lives if collision occurs
-                    asteroids[i].hit = true; // Set the hit flag to true
+                    lives--; 
+                    asteroids[i].hit = true; 
                     if (lives <= 0) {
                         gameOver();
                     }
@@ -110,7 +110,7 @@
         }
 
         function gameOver() {
-            noLoop(); // Stop the draw loop
+            noLoop(); // ending draw loop
             textSize(48);
             textAlign(CENTER, CENTER);
             fill(255);
@@ -124,10 +124,10 @@
         }
 
         function drawBackgroundStars() {
-            fill(255); // Set color to white for background stars
+            fill(255); 
             noStroke();
             for (let i = 0; i < backgroundStars.length; i++) {
-                ellipse(backgroundStars[i].x, backgroundStars[i].y, 2, 2); // Draw a small ellipse for each background star
+                ellipse(backgroundStars[i].x, backgroundStars[i].y, 2, 2); 
             }
         }
 
@@ -152,22 +152,22 @@
                 this.x = x;
                 this.y = y;
                 this.speed = speed;
-                this.size = random(20, 50); // Randomize asteroid size
-                this.hit = false; // Flag to track if the asteroid has been hit
+                this.size = random(20, 50); 
+                this.hit = false;
             }
 
             update() {
-                this.x -= this.speed; // Move the asteroid from right to left
+                this.x -= this.speed;
                 if (this.x < -this.size) {
-                    this.x = width; // Reset the asteroid's position when it goes off-screen
+                    this.x = width; 
                     this.y = random(height);
-                    this.hit = false; // Reset the hit flag when repositioning
+                    this.hit = false; 
                 }
             }
 
             display() {
-                fill(150); // Set color to gray for asteroids
-                ellipse(this.x, this.y, this.size, this.size); // Draw an ellipse for the asteroid
+                fill(150); 
+                ellipse(this.x, this.y, this.size, this.size); 
             }
         }
 
@@ -184,9 +184,9 @@
                 noStroke();
                 fill(this.color);
                 rect(this.x - this.size / 2, this.y - this.size / 4, this.size, this.size / 2, 5); // Body
-                fill(50); // Dark gray for cockpit
+                fill(50); 
                 rect(this.x - this.size / 8, this.y - this.size / 4 - this.size / 8, this.size / 4, this.size / 4, 3); // Cockpit
-                fill(150); // Light gray for wings
+                fill(150); 
                 triangle(this.x - this.size / 2, this.y, this.x - this.size / 4, this.y - this.size / 8, this.x - this.size / 4, this.y + this.size / 8); // Left wing
                 triangle(this.x + this.size / 2, this.y, this.x + this.size / 4, this.y - this.size / 8, this.x + this.size / 4, this.y + this.size / 8); // Right wing
                 pop();
@@ -212,10 +212,10 @@
                 // Check for collision with collectible stars
                 for (let i = 0; i < collectibleStars.length; i++) {
                     if (dist(this.x, this.y, collectibleStars[i].x, collectibleStars[i].y) < r) {
-                        collectibleStars.splice(i, 1); // Remove the collectible star
-                        score++; // Increase the score
-                        generateCollectibleStar(); // Generate a new collectible star
-                        break; // Exit loop after collision with one collectible star
+                        collectibleStars.splice(i, 1); 
+                        score++;
+                        generateCollectibleStar(); 
+                        break;
                     }
                 }
             }
@@ -229,10 +229,10 @@
             }
 
             display() {
-               fill(255, 255, 0); // Set color to yellow for collectible stars
+               fill(255, 255, 0); 
 
                 noStroke();
-                ellipse(this.x, this.y, this.size, this.size); // Draw a bigger ellipse for each collectible star
+                ellipse(this.x, this.y, this.size, this.size); 
             }
         }
 
@@ -246,7 +246,7 @@
 
         function drawCollectibleStars() {
             for (let i = 0; i < collectibleStars.length; i++) {
-                collectibleStars[i].display(); // Display each collectible star
+                collectibleStars[i].display(); 
             }
         }
 
@@ -315,10 +315,6 @@
             return check;
         }
 
-        // from https://stackoverflow.com/questions/9038625/detect-if-device-is-ios
-        /**
-         * Is the device iOS?
-         */
         function is_iOS() {
             return ['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform)
                 // iPad on iOS 13 detection
